@@ -136,7 +136,7 @@ void mensagensBotConfiguracao(int numNewMessages) {
           if(!wifiManager.startConfigPortal("ESP8266") )
           {            
             ESP.restart();
-          }    
+          } 
       } 
       else if (dispositivo.etapa_configuracao == 0) 
         {
@@ -296,6 +296,7 @@ void mensagensBotPersonalizado(int numNewMessages, UniversalTelegramBot bot_usua
     }
     else if (text == "ajuda" || text == "me ajude") {
       enviarMensagemOpcoes(bot_usuario, chat_id, "Opa, vamos lá.\nPara começar, você pode utilizar os seguintes comandos para que possamos ir conversando.", keyboardJsonOpcoes);
+      dispositivo.usuarios[posicao_usuario].etapa = 0;
     }
     else if (text == "chat id") {
       enviarMensagem(bot_usuario, chat_id, "Olá " + nome_usuario + " o número do seu chat id é: " + chat_id);
@@ -328,16 +329,18 @@ void mensagensBotPersonalizado(int numNewMessages, UniversalTelegramBot bot_usua
       }
       else {
         int posicao_pino = getPosicaoPinoByNome(nome_pino);  
-        if (dispositivo.pinos[posicao_pino].nome_digital == "a0") {
-          enviarMensagem(bot_usuario, chat_id, "O dispositivo " + nome_pino + " não pode ser desligado.");
-        } else {                
-          if (posicao_pino >= 0) {
-              int numero_pino = getNumeroPinoByNomeDigital(dispositivo.pinos[posicao_pino].nome_digital);                  
+        
+        if (posicao_pino >= 0) {
+          if (dispositivo.pinos[posicao_pino].nome_digital == "a0") {
+            enviarMensagem(bot_usuario, chat_id, "O dispositivo " + nome_pino + " não pode ser desligado.");
+          } else {                
+            int numero_pino = getNumeroPinoByNomeDigital(dispositivo.pinos[posicao_pino].nome_digital);                  
               digitalWrite(numero_pino, LOW);            
               enviarMensagem(bot_usuario, chat_id, "Desliguei " +nome_pino);
-          } else {
-            enviarMensagem(bot_usuario, chat_id, "Não existe nenhum dispositivo com o nome informado.");
-          }
+          } 
+        }
+        else {
+          enviarMensagem(bot_usuario, chat_id, "Não existe nenhum dispositivo com o nome informado.");
         }
       } 
     }
@@ -350,16 +353,17 @@ void mensagensBotPersonalizado(int numNewMessages, UniversalTelegramBot bot_usua
       }
       else {
         int posicao_pino = getPosicaoPinoByNome(nome_pino);
-        if (dispositivo.pinos[posicao_pino].nome_digital == "a0") {
-          enviarMensagem(bot_usuario, chat_id, "O dispositivo " + nome_pino + " não pode ser ligado.");
-        } else {          
-          if (posicao_pino >= 0) {
+        if (posicao_pino >= 0) {
+          if (dispositivo.pinos[posicao_pino].nome_digital == "a0") {
+            enviarMensagem(bot_usuario, chat_id, "O dispositivo " + nome_pino + " não pode ser ligado.");
+          } else {
               int numero_pino = getNumeroPinoByNomeDigital(dispositivo.pinos[posicao_pino].nome_digital);   
               digitalWrite(numero_pino, HIGH);
               enviarMensagem(bot_usuario, chat_id, "Liguei " +nome_pino);
-          } else {
-            enviarMensagem(bot_usuario, chat_id, "Não existe nenhum dispositivo com o nome informado.");
-          }
+          } 
+        }
+        else {
+          enviarMensagem(bot_usuario, chat_id, "Não existe nenhum dispositivo com o nome informado.");
         }
       }
     }
@@ -934,18 +938,19 @@ void setup() {
   clientMac += macToStr(mac);
 
   WiFiManager wifiManager;
-
   wifiManager.autoConnect("ESP8266");
-  
+
   setupPins();
 
   dispositivo.mac = clientMac;
-  
+
   lastTimeScan = millis();  
 }
 
 void loop() {  
+ 
   if (millis() > lastTimeScan + BOT_SCAN_MESSAGE_INTERVAL)  {  
+    
     //Bot de configuração 
     if (dispositivo.etapa_configuracao < 5) {
       int numNewMessages = bot_configuracao.getUpdates(bot_configuracao.last_message_received + 1);  
@@ -959,12 +964,13 @@ void loop() {
         UniversalTelegramBot bot_usuario(dispositivo.token_id, client);
         //Bot do usuário
         int numMessage = bot_usuario.getUpdates(bot_usuario.last_message_received + 1);  
+       
         while(numMessage) {
           mensagensBotPersonalizado(numMessage, bot_usuario);
           numMessage = bot_usuario.getUpdates(bot_usuario.last_message_received + 1);
         } 
-         
     }     
+
     lastTimeScan = millis();
   }
   yield();
