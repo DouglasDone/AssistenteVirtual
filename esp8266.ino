@@ -278,7 +278,9 @@ void mensagensBotPersonalizado(int numNewMessages, UniversalTelegramBot bot_usua
     String keyboardJsonOpcoes = recuperarOpcoes(chat_id);    
 
     if (!permiteInteragir(chat_id)) {
-      if (dispositivo.senha_acesso == text) {        
+
+      //Remover '/' do primeiro caractere     
+      if (dispositivo.senha_acesso == text || "/" + dispositivo.senha_acesso == text) {        
         adicionarUsuario(nome_usuario, chat_id);
         enviarMensagem(bot_usuario, chat_id, "Olá "+ nome_usuario + " agora podemos conversar, se não souber por onde começar basta escrever 'ajuda'.");
         dispositivo.senha_acesso = "";
@@ -778,6 +780,10 @@ void removerPino(String nome) {
 
 void adicionarUsuario(String nome_usuario, String chat_id) {
   int c = 0;
+
+  if (chat_id.indexOf("-") == 0) {
+    nome_usuario = "Grupo-" + nome_usuario;    
+  }
   
   while(c < sizeof(dispositivo.usuarios)/sizeof(Usuario)) {
     if (dispositivo.usuarios[c].nome == "") {
@@ -943,7 +949,7 @@ void setup() {
   setupPins();
 
   dispositivo.mac = clientMac;
-
+  
   lastTimeScan = millis();  
 }
 
